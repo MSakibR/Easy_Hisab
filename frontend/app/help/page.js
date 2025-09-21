@@ -7,7 +7,7 @@ export default function Home() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:8000/api/hello/")
+      .get("http://127.0.0.1:8000/api/help/")
       .then((res) => setMessage(res.data.message))
       .catch((err) => console.error(err));
   }, []);
@@ -19,7 +19,3 @@ export default function Home() {
     </div>
   );
 }
-
-
-
-
