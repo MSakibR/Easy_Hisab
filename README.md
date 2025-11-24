@@ -142,7 +142,7 @@ Full backend & frontend source code
 Project documentation
 Setup instructions
 
-##🏁 Conclusion
+## 🏁 Conclusion
 
 The Easy Invoicing & Tax (GST) Automation project successfully establishes the core structure for a complete invoicing and GST automation platform. With API integration, basic models, and frontend routing already implemented, the foundation is ready for further expansion.
 
