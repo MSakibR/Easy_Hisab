@@ -1,6 +1,9 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import NotificationPanel from "../components/NotificationPanel";
+import axios from "axios";
 
 const menuItems = [
   {
@@ -181,15 +184,101 @@ const menuItems = [
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="2"
-          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+          d="M17 16l4-4m0 0l-4-4m4 4H7"
+        ></path>
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M7 8v8"
         ></path>
       </svg>
     ),
   },
 ];
 
-export default function Sidebar({ open, setOpen }) {
+export default function Sidebar({ open, setOpen, onToggleNotifications }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState({ first_name: "", company_name: "" });
+  const [notifOpen, setNotifOpen] = useState(false);
+
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const toggleNotifications = () => {
+    onToggleNotifications(); // call the function passed from parent
+  };
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const token = localStorage.getItem("access");
+        if (!token) {
+          router.push("/auth");
+          return;
+        }
+
+        const res = await fetch("http://localhost:8000/api/me/", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+        } else if (res.status === 401) {
+          router.push("/auth");
+        }
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+        router.push("/auth");
+      }
+    }
+
+    fetchUser();
+  }, [router]);
+
+  // ✅ Fetch notifications from Django backend
+  useEffect(() => {
+    const token = localStorage.getItem("access");
+    if (!token) return;
+
+    axios
+      .get("http://localhost:8000/api/notification/", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setNotifications(res.data);
+        const unread = res.data.filter((n) => n.status === "unread").length;
+        setUnreadCount(unread);
+      })
+      .catch((err) => console.error("Failed to fetch notifications:", err));
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const refreshToken = localStorage.getItem("refresh");
+      if (refreshToken) {
+        await fetch("http://localhost:8000/api/logout/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access")}`,
+          },
+          body: JSON.stringify({ refresh: refreshToken }),
+        });
+      }
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+
+    router.push("/auth");
+  };
 
   return (
     <div
@@ -202,11 +291,7 @@ export default function Sidebar({ open, setOpen }) {
           open ? "opacity-100" : "opacity-0"
         } transition-opacity duration-300`}
       >
-        {/* Hamburger toggle */}
-        {/* Hamburger toggle and title */}
-        {/* Hamburger toggle and title */}
         <div className="p-4 flex items-center border-b border-gray-700">
-          {/* Hamburger button inside gradient square */}
           <button
             onClick={() => setOpen(!open)}
             className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center rounded-lg text-white focus:outline-none"
@@ -226,76 +311,114 @@ export default function Sidebar({ open, setOpen }) {
             </svg>
           </button>
 
-          {/* Title & Subline */}
           <div
             className={`ml-3 flex flex-col transition-opacity duration-300 ${
               open ? "opacity-100" : "opacity-0"
             }`}
           >
-            <h2 className="text-white font-bold text-lg">Easy Hisab </h2>
+            <h2 className="text-white font-bold text-lg">Easy Hisab</h2>
             <p className="text-xs text-gray-300 mt-0.5">
               Billing with Brilliance
             </p>
           </div>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-2 mt-4">
-          {menuItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.path}
-              className={`flex items-center px-4 py-2 mb-1 rounded-lg transition-all duration-200 ${
-                pathname === item.path
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-gray-300 hover:bg-gray-700 hover:translate-x-1"
-              }`}
-            >
-              {item.icon}
-              <span className="font-medium">{item.name}</span>
-            </Link>
-          ))}
+          {menuItems.map((item) =>
+            item.name === "Logout" ? (
+              <button
+                key={item.name}
+                onClick={handleLogout}
+                className={`flex items-center px-4 py-2 mb-1 rounded-lg transition-all duration-200 ${
+                  pathname === item.path
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "text-gray-300 hover:bg-gray-700 hover:translate-x-1"
+                }`}
+              >
+                {item.icon}
+                <span className="font-medium">{item.name}</span>
+              </button>
+            ) : (
+              <Link
+                key={item.name}
+                href={item.path}
+                className={`flex items-center px-4 py-2 mb-1 rounded-lg transition-all duration-200 ${
+                  pathname === item.path
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "text-gray-300 hover:bg-gray-700 hover:translate-x-1"
+                }`}
+              >
+                {item.icon}
+                <span className="font-medium">{item.name}</span>
+              </Link>
+            )
+          )}
         </nav>
 
-        {/* User Profile */}
         <div className="mt-auto p-3 bg-gray-800 rounded-lg border border-gray-600">
           <div className="flex items-center justify-between">
-            {/* Profile clickable */}
             <Link
               href="/profile"
               className="flex items-center hover:bg-gray-700 px-2 py-1 rounded-lg transition-all duration-200"
             >
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                JD
+              <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600">
+                {user.profile_picture ? (
+                  <img
+                    src={`http://localhost:8000${user.profile_picture}`}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white font-bold text-sm">
+                    {user.first_name ? user.first_name[0].toUpperCase() : "U"}
+                  </span>
+                )}
               </div>
+
               <div className="ml-3">
-                <p className="text-sm font-medium text-white">John Doe</p>
-                <p className="text-xs text-gray-400">Administrator</p>
+                <p className="text-sm font-medium text-white">
+                  {user.first_name}
+                </p>
+                <p className="text-xs text-gray-400">{user.company_name}</p>
               </div>
             </Link>
 
-            {/* Notifications clickable */}
-            <Link
-              href="/notification"
-              className="relative text-gray-400 hover:text-white transition-colors duration-200"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="relative">
+              <Link
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleNotifications(); // call the function you just defined
+                }}
+                className="relative text-gray-400 hover:text-white transition-colors duration-200"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                ></path>
-              </svg>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
-                <span className="text-xs text-white font-bold">3</span>
-              </div>
-            </Link>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  ></path>
+                </svg>
+                {unreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
+                    <span className="text-xs text-white font-bold">
+                      {unreadCount}
+                    </span>
+                  </div>
+                )}
+
+                {/* Notification Panel */}
+                {notifOpen && (
+                  <NotificationPanel onClose={() => setNotifOpen(false)} />
+                )}
+              </Link>
+            </div>
           </div>
         </div>
       </div>

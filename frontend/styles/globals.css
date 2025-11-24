@@ -4,3 +4,16 @@
 body {
   font-family: sans-serif;
 }
+
+/* RGB flowing animation */
+@keyframes gradient-x {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-x {
+  background: linear-gradient(270deg, #ff4d4d, #4dff4d, #4d4dff, #ff4d4d);
+  background-size: 600% 600%;
+  animation: gradient-x 5s ease infinite;
+}

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+ <head>
+    <meta charset="UTF-8">
+    <title>Invoice {{ invoice.invoice_number }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background: #f8f8f8;
+        }
+
+        .container {
+            width: 90%;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .header {
+            background: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .section {
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ccc;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #f2f2f2;
+        }
+
+        .totals {
+            float: right;
+            width: 40%;
+            margin-top: 20px;
+        }
+
+        .totals div {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+
+        /* Diagonal Watermark */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            font-size: 5rem;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.1);
+            transform: translate(-50%, -50%) rotate(-45deg);
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+        }
+
+        .watermark.paid {
+            color: rgba(0, 128, 0, 0.1);
+        }
+
+        .watermark.unpaid {
+            color: rgba(255, 0, 0, 0.1);
+        }
+
+        @media print {
+            body {
+                background: #fff;
+            }
+
+            .container {
+                box-shadow: none;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            .header {
+                border-radius: 0;
+            }
+        }
+    </style>
+ </head>
+
+ <body>
+    <div class="container">
+        {% if invoice.status == "paid" %}
+        <div class="watermark paid">PAID</div>
+        {% elif invoice.status == "unpaid" %}
+        <div class="watermark unpaid">UNPAID</div>
+        {% endif %}
+
+        <div class="header">
+            <h1>Invoice</h1>
+            <p>{{ invoice.invoice_number }}</p>
+        </div>
+
+        <div class="section">
+            <h3>From:</h3>
+            <p>{{ invoice.user.company_name }}</p>
+            <p>{{ invoice.user.username }}</p>
+            <p>{{ invoice.user.email }}</p>
+            <p>{{ invoice.user.phone_number }}</p>
+        </div>
+
+        <div class="section">
+            <h3>Bill To:</h3>
+            <p>{{ invoice.customer.company_name }}</p>
+            <p>{{ invoice.customer.contact_person }}</p>
+            <p>{{ invoice.customer.email }}</p>
+            <p>{{ invoice.customer.phone }}</p>
+            <p>{{ invoice.customer.address }}</p>
+        </div>
+
+        <div class="section">
+            <h3>Invoice Details:</h3>
+            <p>Invoice Date: {{ invoice.invoice_date }}</p>
+            <p>Due Date: {{ invoice.due_date }}</p>
+            <p>Payment Method: {{ invoice.payment_method|title }}</p>
+            <p>Status: {{ invoice.status|title }}</p>
+        </div>
+
+        <div class="section">
+            <h3>Items:</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in invoice.items.all %}
+                    <tr>
+                        <td>{{ item.product_name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>৳{{ item.unit_price }}</td>
+                        <td>৳{{ item.total }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="totals">
+            <div>
+                <span>Subtotal:</span>
+                <span>৳{{ invoice.subtotal }}</span>
+            </div>
+            <div>
+                <span>Tax (5%):</span>
+                <span>৳{{ invoice.tax }}</span>
+            </div>
+            <div style="font-weight:bold; font-size:1.2rem;">
+                <span>Total:</span>
+                <span>৳{{ invoice.total_amount }}</span>
+            </div>
+        </div>
+
+        <div class="section" style="clear: both; margin-top: 50px;">
+            <p>Notes: {{ invoice.notes }}</p>
+        </div>
+
+        <div class="section" style="text-align:center; margin-top: 50px;">
+            <p>Thank you for your business!</p>
+        </div>
+    </div>
+ </body>
+
+</html>

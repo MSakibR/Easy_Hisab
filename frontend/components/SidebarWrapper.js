@@ -1,9 +1,13 @@
 "use client";
 import { useState } from "react";
 import Sidebar from "./Sidebar";
+import NotificationPanel from "../components/NotificationPanel";
+
 
 export default function SidebarWrapper({ children }) {
   const [open, setOpen] = useState(true);
+  const [notifOpen, setNotifOpen] = useState(false);
+  
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -29,7 +33,14 @@ export default function SidebarWrapper({ children }) {
 
       <div className="flex flex-1">
         {/* Sidebar */}
-        <Sidebar open={open} setOpen={setOpen} />
+        <Sidebar
+          open={open}
+          setOpen={setOpen}
+          onToggleNotifications={() => setNotifOpen(!notifOpen)}
+        />
+
+        {/* Notification Panel */}
+        {notifOpen && <NotificationPanel onClose={() => setNotifOpen(false)} />}
 
         {/* Main Content */}
         <main

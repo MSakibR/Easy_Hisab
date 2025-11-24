@@ -18,6 +18,9 @@ class Invoice(models.Model):
         max_length=50,
         choices=[("online", "Online"), ("offline", "Offline"), ("credit", "On Credit")],
     )
+    pdf_file = models.FileField(
+        upload_to="invoices/pdfs/", blank=True, null=True
+    )  # NEW
     status = models.CharField(max_length=50, default="draft")
     notes = models.TextField(blank=True, null=True)
 
