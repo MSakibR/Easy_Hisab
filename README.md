@@ -121,7 +121,7 @@ python manage.py runserver
 cd frontend
 npm install
 npm run dev
-
+```
 Test the Backend API
 
 Open in browser:
