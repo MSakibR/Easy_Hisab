@@ -125,34 +125,24 @@ npm run dev
 Test the Backend API
 
 Open in browser:
-
 http://127.0.0.1:8000/api/
 
 📸 Screenshots
-
 (You can add your screenshots here later)
-
 Main directory structure
-
 Backend setup
-
 Frontend interface
-
 API test output
 
 📦 GitHub Repository
-
 🔗 Project Link: https://github.com/MSakibR/Easy_Hisab
 
-The repository includes:
-
+#The repository includes:
 Full backend & frontend source code
-
 Project documentation
-
 Setup instructions
 
-🏁 Conclusion
+##🏁 Conclusion
 
 The Easy Invoicing & Tax (GST) Automation project successfully establishes the core structure for a complete invoicing and GST automation platform. With API integration, basic models, and frontend routing already implemented, the foundation is ready for further expansion.
 
